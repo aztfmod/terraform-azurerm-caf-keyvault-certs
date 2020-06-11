@@ -23,7 +23,7 @@ variable "convention" {
 }
 
 variable "akv_config" {
-  
+    description = "(Required) Key Vault Configuration Object"
 }
 
 
@@ -32,5 +32,5 @@ variable "email" {
 }
 
 variable "certificates" {
-  
+    description = "(Required) list of domain hostnames to generate certificates for"
 }
