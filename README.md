@@ -35,8 +35,7 @@ module "keyvault_certs" {
   tags  = var.tags
   email = var.email
 
-  certificates = ["helloworld.domain.com", "*.domain.com"]
-  # {{ "helloworld.pet.com" = secret_id},{"*.pet.com" = secret_id} }
+  certificates = local.certificates
 
 }
 ```
@@ -46,7 +45,7 @@ module "keyvault_certs" {
 | Name | Type | Default | Description |
 | -- | -- | -- | -- |
 | certificates | list | None | (Required) list of domain hostnames to generate certificates for. |
-| email | string | None | (Required) email for certs registration |
+| email | string | None | (Required) email for certs registration. |
 | resource_group_name | string | None | (Required) Name of the resource group where to create the resource. Changing this forces a new resource to be created. |
 | location | string | None | (Required) Specifies the Azure location to deploy the resource. Changing this forces a new resource to be created.  |
 | tags | map | None | (Required) Map of tags for the deployment.  |
@@ -58,6 +57,20 @@ module "keyvault_certs" {
 | prefix | string | None | (Optional) Prefix to be used. |
 
 ## Parameters
+
+### certificates
+
+(Required) list of domain hostnames to generate certificates for. 
+```hcl
+variable "certificates" {
+  description = "(Required) list of domain hostnames to generate certificates for"
+}
+```
+Sample:
+```hcl
+certificates = ["helloworld.domain.com", "*.domain.com"]
+```
+
 
 ### akv_config
 
