@@ -1,5 +1,5 @@
 
-# Create SSL cert and insert them into Azure Key Vault
+# Create SSL certs and insert them into Azure Key Vault
 
 Using Let's Encrypt for now.
 
