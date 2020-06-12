@@ -44,20 +44,49 @@ resource "azurecaf_naming_convention" "caf_name_kv" {
   convention    = var.convention
 }
 
+module "azurekevault" {
+    source  = "aztfmod/caf-keyvault/azurerm"
+    version = "0.x.y"
 
-resource "azurerm_key_vault" "akv" {
-  name                = azurecaf_naming_convention.caf_name_kv.result
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  tags                = local.tags
-  sku_name            = var.akv_config.sku_name
-
-  enabled_for_disk_encryption     = lookup(var.akv_config.akv_features, "enabled_for_disk_encryption", null)
-  enabled_for_deployment          = lookup(var.akv_config.akv_features, "enabled_for_deployment", null)
-  enabled_for_template_deployment = lookup(var.akv_config.akv_features, "enabled_for_template_deployment", null)
-  soft_delete_enabled             = lookup(var.akv_config.akv_features, "soft_delete_enabled", null)
+    prefix                            = var.prefix
+    location                          = var.location
+    resource_group_name               = var.resource_group_name
+    akv_config                        = var.akv_config
+    tags                              = var.tags
+    diagnostics_settings              = var.ipdiags
+    diagnostics_map                   = var.diagsmap
+    log_analytics_workspace           = var.laworkspace
 }
+
+module "key_vault" {
+  source  = "aztfmod/caf-keyvault/azurerm"
+  version = "~> 2.0.0"
+
+  prefix                  = var.prefix
+  postfix                 = var.postfix
+  location                = var.location
+  resource_group_name     = var.resource_group_name
+  akv_config              = var.akv_config
+  tags                    = var.tags
+  diagnostics_settings    = var.diagnostics_settings
+  diagnostics_map         = var.diagnostics_map
+  log_analytics_workspace = var.log_analytics_workspace
+  convention              = var.convention
+}
+
+# resource "azurerm_key_vault" "akv" {
+#   name                = azurecaf_naming_convention.caf_name_kv.result
+#   location            = var.location
+#   resource_group_name = var.resource_group_name
+#   tenant_id           = data.azurerm_client_config.current.tenant_id
+#   tags                = local.tags
+#   sku_name            = var.akv_config.sku_name
+
+#   enabled_for_disk_encryption     = lookup(var.akv_config.akv_features, "enabled_for_disk_encryption", null)
+#   enabled_for_deployment          = lookup(var.akv_config.akv_features, "enabled_for_deployment", null)
+#   enabled_for_template_deployment = lookup(var.akv_config.akv_features, "enabled_for_template_deployment", null)
+#   soft_delete_enabled             = lookup(var.akv_config.akv_features, "soft_delete_enabled", null)
+# }
 
 # rover identity
 resource "azurerm_key_vault_access_policy" "rover" {
