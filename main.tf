@@ -1,5 +1,4 @@
 provider "azurerm" {
-  version = "<= 2.2.0"
   features {
     key_vault {
       recover_soft_deleted_key_vaults = false
@@ -13,7 +12,6 @@ provider "acme" {
 }
 
 data "azurerm_client_config" "current" {}
-
 
 locals {
   module_tag = {

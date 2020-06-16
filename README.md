@@ -1,3 +1,4 @@
+[![VScodespaces](https://img.shields.io/endpoint?url=https%3A%2F%2Faka.ms%2Fvso-badge)](https://online.visualstudio.com/environments/new?name=terraform-azurerm-caf-caf-keyvault-certs&repo=aztfmod/terraform-azurerm-caf-caf-keyvault-certs)
 
 # Create SSL certs and insert them into Azure Key Vault
 
@@ -24,19 +25,12 @@ module "keyvault_certs" {
   domain_resource_group_name = var.domain_resource_group_name
   location                   = var.location
   convention                 = var.convention
-  akv_config = {
-    name     = local.app_gateway_name
-    sku_name = "premium"
-    akv_features = {
-      soft_delete_enabled = true
-    }
-  }
+  akv_id                     = var.akv_id
 
   tags  = var.tags
   email = var.email
 
   certificates = local.certificates
-
 }
 ```
 
