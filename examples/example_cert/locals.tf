@@ -19,6 +19,33 @@ locals {
     environment = "DEV"
     owner       = "CAF"
   }
+
+  ttl         = 10
+  lock_zone   = false
+  lock_domain = false
+
+  domain = "domaintest123456.com"
+
+  # changes to below will not update Domain, destroy first and reapply
+  contract = {
+    name_first   = "John"
+    name_last    = "Doe"
+    email        = "test@contoso.com"
+    phone        = "+65.12345678"
+    organization = "Sandpit"
+    job_title    = "Engineer"
+    address1     = "Singapore"
+    address2     = ""
+    postal_code  = "018898"
+    state        = "Singapore"
+    city         = "Singapore"
+    country      = "SG"
+    auto_renew   = true
+  }
+
+
+
+
   solution_plan_map = {
     NetworkMonitoring = {
       "publisher" = "Microsoft"
@@ -55,7 +82,7 @@ locals {
   }
 
   certificate = {
-    common_name = "contoso.com"
+    common_name = local.domain
     email       = "joe@contoso.com"
     private_key = {
       algorithm = "RSA"

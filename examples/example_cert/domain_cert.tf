@@ -97,6 +97,24 @@ resource "azurerm_key_vault_access_policy" "developer" {
   ]
 }
 
+resource "random_string" "random" {
+  length  = 16
+  special = false
+  upper   = false
+}
+
+module "domain" {
+  source = "github.com/aztfmod/terraform-azurerm-caf-domain"
+
+  prefix              = local.prefix
+  resource_group_name = azurerm_resource_group.rg_test.name
+  tags                = local.tags
+  name                = local.domain #format("%s.com", random_string.random.result)
+  location            = local.location
+  contract            = local.contract
+  lock_zone           = local.lock_zone
+  lock_domain         = local.lock_domain
+}
 
 module "domain_cert" {
   source = "../.."
