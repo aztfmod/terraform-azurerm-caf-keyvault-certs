@@ -2,30 +2,27 @@
 # https://community.letsencrypt.org/t/unable-to-regenerate-certificate-with-terraform/80275/2
 # ACME Let's Encrypt only works on public domain
 
+# https://www.terraform.io/docs/providers/tls/r/private_key.html
 resource "tls_private_key" "private_key" {
-  count = length(var.certificates)
-
-  algorithm = "RSA"
+  algorithm = var.certificate.private_key.algorithm
+  rsa_bits = lookup(var.certificate.private_key, "rsa_bits", null)
+  ecdsa_curve = lookup(var.certificate.private_key, "ecdsa_curve", null)
 }
 
 resource "acme_registration" "reg" {
-  count = length(var.certificates)
-
-  account_key_pem = tls_private_key.private_key[count.index].private_key_pem
-  email_address   = var.email
+  account_key_pem = tls_private_key.private_key.private_key_pem
+  email_address   = var.certificate.email
 }
 
-resource "random_string" "passwords" {
-  count = length(var.certificates)
-
+resource "random_password" "password" {
+  special = true
   length = 16
 }
-resource "acme_certificate" "certificate" {
-  count = length(var.certificates)
 
-  account_key_pem          = acme_registration.reg[count.index].account_key_pem
-  common_name              = var.certificates[count.index]
-  certificate_p12_password = random_string.passwords[count.index].result
+resource "acme_certificate" "certificate" {
+  account_key_pem          = acme_registration.reg.account_key_pem
+  common_name              = var.certificate.common_name
+  certificate_p12_password = random_password.password.result
 
   dns_challenge {
     provider = "azure"
@@ -35,98 +32,15 @@ resource "acme_certificate" "certificate" {
   }
 }
 
-
-
-resource "azurecaf_naming_convention" "caf_name_kv" {
-  name          = var.akv_config.name
-  prefix        = var.prefix != "" ? var.prefix : null
-  resource_type = "azurerm_key_vault"
-  convention    = var.convention
-}
-
-module "azurekevault" {
-    source  = "aztfmod/caf-keyvault/azurerm"
-    version = "0.x.y"
-
-    prefix                            = var.prefix
-    location                          = var.location
-    resource_group_name               = var.resource_group_name
-    akv_config                        = var.akv_config
-    tags                              = var.tags
-    diagnostics_settings              = var.ipdiags
-    diagnostics_map                   = var.diagsmap
-    log_analytics_workspace           = var.laworkspace
-}
-
-module "key_vault" {
-  source  = "aztfmod/caf-keyvault/azurerm"
-  version = "~> 2.0.0"
-
-  prefix                  = var.prefix
-  postfix                 = var.postfix
-  location                = var.location
-  resource_group_name     = var.resource_group_name
-  akv_config              = var.akv_config
-  tags                    = var.tags
-  diagnostics_settings    = var.diagnostics_settings
-  diagnostics_map         = var.diagnostics_map
-  log_analytics_workspace = var.log_analytics_workspace
-  convention              = var.convention
-}
-
-# resource "azurerm_key_vault" "akv" {
-#   name                = azurecaf_naming_convention.caf_name_kv.result
-#   location            = var.location
-#   resource_group_name = var.resource_group_name
-#   tenant_id           = data.azurerm_client_config.current.tenant_id
-#   tags                = local.tags
-#   sku_name            = var.akv_config.sku_name
-
-#   enabled_for_disk_encryption     = lookup(var.akv_config.akv_features, "enabled_for_disk_encryption", null)
-#   enabled_for_deployment          = lookup(var.akv_config.akv_features, "enabled_for_deployment", null)
-#   enabled_for_template_deployment = lookup(var.akv_config.akv_features, "enabled_for_template_deployment", null)
-#   soft_delete_enabled             = lookup(var.akv_config.akv_features, "soft_delete_enabled", null)
-# }
-
-# rover identity
-resource "azurerm_key_vault_access_policy" "rover" {
-
-  key_vault_id = azurerm_key_vault.akv.id
-  tenant_id    = local.tenant_id
-  object_id    = local.object_id
-
-  key_permissions = []
-
-  secret_permissions = [
-    "Get",
-    "List",
-    "Set",
-    "Delete"
-  ]
-
-  certificate_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Delete",
-    "Import",
-    "Purge"
-  ]
-  # backup, create, delete, deleteissuers, get, getissuers, import, 
-  # list, listissuers, managecontacts, manageissuers, purge, recover, restore, setissuers and update.
-}
-
-
+# todo: implement details as per: https://www.terraform.io/docs/providers/azurerm/r/key_vault_certificate.html
 resource "azurerm_key_vault_certificate" "certificates" {
-  depends_on = [azurerm_key_vault_access_policy.rover]
-  count      = length(var.certificates)
 
-  name         = trim(replace(replace(var.certificates[count.index], ".", "-"), "*", ""),"-")
-  key_vault_id = azurerm_key_vault.akv.id
+  name         = trim(replace(replace(var.certificate.common_name, ".", "-"), "*", ""),"-")
+  key_vault_id = var.keyvault_id
 
   certificate {
-    contents = acme_certificate.certificate[count.index].certificate_p12
-    password = random_string.passwords[count.index].result #"testpassword"
+    contents = acme_certificate.certificate.certificate_p12
+    password = random_password.password.result
   }
 
   certificate_policy {
@@ -136,8 +50,8 @@ resource "azurerm_key_vault_certificate" "certificates" {
 
     key_properties {
       exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
+      key_size   = lookup(var.certificate.private_key, "rsa_bits", 2048)
+      key_type   = var.certificate.private_key.algorithm
       reuse_key  = false
     }
 
@@ -146,42 +60,8 @@ resource "azurerm_key_vault_certificate" "certificates" {
     }
   }
 
-  provisioner "local-exec" {
-    when    = "destroy"
-    command = "az keyvault certificate purge --vault-name ${azurerm_key_vault.akv.name} --name ${self.name}"
-  }
-}
-
-resource "azurerm_user_assigned_identity" "msi" {
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  name                = "keyvault-cert-msi"
-}
-
-resource "azurerm_key_vault_access_policy" "msi" {
-
-  key_vault_id = azurerm_key_vault.akv.id
-  tenant_id    = local.tenant_id
-  object_id    = azurerm_user_assigned_identity.msi.principal_id
-
-  key_permissions = []
-
-  secret_permissions = [
-    "Get",
-    "List",
-    "Set",
-    "Delete",
-
-  ]
-
-  certificate_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Delete",
-    "Import",
-    "Purge"
-  ]
-  # backup, create, delete, deleteissuers, get, getissuers, import, 
-  # list, listissuers, managecontacts, manageissuers, purge, recover, restore, setissuers and update.
+  # provisioner "local-exec" {
+  #   when    = "destroy"
+  #   command = "az keyvault certificate purge --vault-name ${azurerm_key_vault.akv.name} --name ${self.name}"
+  # }
 }
