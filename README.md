@@ -168,6 +168,4 @@ diagnostics_settings = {
 
 | Name | Type | Description | 
 | -- | -- | -- | 
-| principal_id | string | Returns the Managed Identity ID. |
 | secret_ids | string | Returns the AKV secret IDs of the created certificates. | 
-| identity_ids | list | Returns the Managed Identity ID to access the created AKV. |
