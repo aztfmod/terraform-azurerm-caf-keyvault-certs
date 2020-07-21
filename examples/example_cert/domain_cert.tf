@@ -1,7 +1,13 @@
 provider "azurerm" {
   version = "2.14.0"
-  features {}
+  features {
+     key_vault {
+      purge_soft_delete_on_destroy = true
+    }
+  }
 }
+
+ 
 
 provider "azurecaf" {
 
@@ -63,6 +69,9 @@ module "akv_test" {
   log_analytics_workspace = module.la_test
   diagnostics_map         = module.diags_test.diagnostics_map
   diagnostics_settings    = local.akv_config.diagnostics_settings
+  purge_protection_enabled = false
+
+
 }
 
 # AKV policies 
