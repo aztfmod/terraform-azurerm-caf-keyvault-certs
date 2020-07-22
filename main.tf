@@ -1,12 +1,3 @@
-provider "azurerm" {
-  features {
-    key_vault {
-      recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy = true
-    }
-  }
-}
-
 provider "acme" {
   server_url = "https://acme-v02.api.letsencrypt.org/directory"
 }
@@ -22,4 +13,15 @@ locals {
   tenant_id               = data.azurerm_client_config.current.tenant_id
   object_id               = data.azurerm_client_config.current.object_id
 
+}
+
+terraform {
+  required_providers {
+    azurecaf = {
+      source = "aztfmod/azurecaf"
+    }
+    azurerm = {
+      source = "hashicorp/azurerm"
+    }
+  }
 }

@@ -1,16 +1,10 @@
 provider "azurerm" {
-  version = "2.14.0"
   features {
-     key_vault {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
       purge_soft_delete_on_destroy = true
     }
   }
-}
-
- 
-
-provider "azurecaf" {
-
 }
 
 data "azurerm_client_config" "current" {}
@@ -134,7 +128,4 @@ module "domain_cert" {
 
   domain_resource_group_name = azurerm_resource_group.rg_test.name
   tags                       = local.tags
-  # log_analytics_workspace  = module.la_test
-  # diagnostics_map          = module.diags_test.diagnostics_map
-  # diagnostics_settings     = local.akv_config.diagnostics_settings
 }

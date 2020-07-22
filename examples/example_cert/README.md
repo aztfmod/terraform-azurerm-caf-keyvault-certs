@@ -1,4 +1,4 @@
-# Azure KeyVault Cert
+# Azure Key Vault Cert
 
 Creates a cert and insert it in an existing Azure Keyvault.
 

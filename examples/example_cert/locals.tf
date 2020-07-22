@@ -43,9 +43,6 @@ locals {
     auto_renew   = true
   }
 
-
-
-
   solution_plan_map = {
     NetworkMonitoring = {
       "publisher" = "Microsoft"
@@ -78,14 +75,6 @@ locals {
         #["Category name",  "Diagnostics Enabled(true/false)", "Retention Enabled(true/false)", Retention_period]                 
         ["AllMetrics", true, true, 60],
       ]
-    }
-  }
-
-  certificate = {
-    common_name = local.domain
-    email       = "joe@contoso.com"
-    private_key = {
-      algorithm = "RSA"
     }
   }
 
