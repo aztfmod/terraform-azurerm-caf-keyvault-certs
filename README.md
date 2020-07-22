@@ -24,6 +24,34 @@ module "keyvault_certs" {
 ```
 
 <!--- BEGIN_TF_DOCS --->
+## Requirements
+
+No requirements.
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| acme | n/a |
+| azurerm | n/a |
+| random | n/a |
+| tls | n/a |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| certificate | (Required) certificate object | `any` | n/a | yes |
+| domain\_resource\_group\_name | (Required) Name of resource group for the certificate | `any` | n/a | yes |
+| keyvault\_id | (Required) Resource ID of the Azure Key Vault | `any` | n/a | yes |
+| tags | (Required) map of tags for the deployment | `any` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| secret\_id | {for x in range(0,9) : x => x} |
+
 <!--- END_TF_DOCS --->
 
 ### Parameters 
